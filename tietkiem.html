@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Mục Tiêu Tiết Kiệm & Lịch Chấm Công</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .container, .calendar-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      margin: 10px;
+      overflow-y: auto;
+    }
+    .container {
+      max-width: 400px;
+      width: 400px;
+    }
+    .calendar-container {
+      flex: 1;
+    }
+    h2 {
+      text-align: center;
+      color: #28a745;
+      margin-bottom: 10px;
+    }
+    .info { font-size: 14px; color: #555; margin-bottom: 5px; }
+    .progress-image-container {
+      position: relative;
+      width: 100%;
+      padding-top: 100%;
+      border-radius: 12px;
+      background: #ddd;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    .progress-image-container img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+    .progress-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.5);
+      color: #fff;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 5px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .input-tiet-kiem {
+      width: 95.5%; /* Kích thước cụ thể của ô nhập mục tiêu tiết kiệm */
+    }
+    .input-tru-tien {
+      width: 95.5%; /* Kích thước cụ thể của ô nhập mục tiêu tiết kiệm */
+    }
+    textarea {
+      height: 80px;
+      width: 282px;
+      resize: vertical;
+    }
+    button {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #28a745;
+      color: #fff;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 5px;
+    }
+    button:hover { background: #218838; }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-top: 10px;
+    }
+    .day {
+      background: #eee;
+      padding: 8px;
+      border-radius: 4px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+    }
+    .day.saved { background: #cce5ff; }
+    .day.selected { background: #d4edda !important; }
+    .day .tick {
+      position: absolute;
+      top: 2px;
+      right: 4px;
+      color: green;
+      font-weight: bold;
+    }
+    .quick-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .quick-buttons button {
+      flex: 1 1 45%;
+      font-size: 13px;
+      background: #007bff;
+    }
+    .quick-buttons button:hover { background: #0056b3; }
+    .month-year-select {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 5px;
+    }
+    .popup {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .popup-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 300px;
+      width: 100%;
+    }
+    .btn-red { background: #dc3545; }
+    .btn-red:hover { background: #c82333; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Mục Tiêu Tiết Kiệm</h2>
+  <div class="info"><strong>Số tiền hiện có:</strong> <span id="soTienHienCo">0₫</span></div>
+  <div class="info"><strong>Số tiền mục tiêu:</strong> <span id="soTienMucTieu">13.500.000₫</span></div>
+  <div class="info"><strong>Số tiền còn lại:</strong> <span id="soTienConLai">13.500.000₫</span></div>
+
+  <div class="progress-image-container">
+    <img src="iphone-16-pro-max-tu-nhien.png" alt="Mục tiêu tiết kiệm">
+    <div class="progress-overlay" id="progressOverlay">
+      <span id="progressText">0%</span>
+    </div>
+  </div>
+
+  <input type="number" id="inputTien" class="input-tiet-kiem" placeholder="Nhập số tiền muốn tiết kiệm">
+  <div class="quick-buttons">
+    <button type="button" onclick="chonTien(125000)">Nửa ngày (125k)</button>
+    <button type="button" onclick="chonTien(250000)">1 ngày (250k)</button>
+    <button type="button" onclick="chonTien(375000)">1 ngày đêm (375k)</button>
+    <button type="button" onclick="chonTien(150000)">Nửa ngày (150k)</button>
+    <button type="button" onclick="chonTien(300000)">1 ngày (300k)</button>
+    <button type="button" onclick="chonTien(450000)">1 ngày đêm (450k)</button>
+  </div>
+  <button onclick="themTien()">💰 Thêm Tiền</button>
+
+  <input type="number" id="inputChiTieu" class="input-tiet-kiem" placeholder="Nhập số tiền chi tiêu">
+  <button onclick="truTien()">💸 Trừ Tiền</button>
+</div>
+
+<div class="calendar-container">
+  <h2>Lịch Chấm Công</h2>
+  <div class="month-year-select">
+    <select id="monthSelect" onchange="taoLich()"></select>
+    <select id="yearSelect" onchange="taoLich()"></select>
+  </div>
+  <div class="calendar" id="calendar"></div>
+</div>
+
+<div id="popup" class="popup" style="display:none;">
+  <div class="popup-content">
+    <h3 id="popup-date"></h3>
+    <select id="popup-cong">
+      <option value="1">1 công</option>
+      <option value="2">2 công</option>
+      <option value="3">3 công</option>
+    </select>
+    <textarea id="popup-note" placeholder="Ghi chú"></textarea>
+    <button onclick="savePopup()">Lưu</button>
+    <button onclick="deletePopup()" class="btn-red">Xóa</button>
+    <button onclick="closePopup()" class="btn-red">Hủy</button>
+  </div>
+</div>
+
+<script>
+  let soTienHienCo = 0;
+  const soTienMucTieu = 13500000;
+  let ngayChon = null;
+  let chamCongData = JSON.parse(localStorage.getItem('chamCongData')) || {};
+
+  function dinhDangVND(soTien) {
+    return soTien.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+  }
+
+  function capNhatHienThi() {
+    document.getElementById('soTienHienCo').innerText = dinhDangVND(soTienHienCo);
+    document.getElementById('soTienMucTieu').innerText = dinhDangVND(soTienMucTieu);
+    document.getElementById('soTienConLai').innerText = dinhDangVND(Math.max(soTienMucTieu - soTienHienCo, 0));
+    const pct = Math.min((soTienHienCo / soTienMucTieu) * 100, 100).toFixed(2);
+    document.getElementById('progressOverlay').style.height = (100 - pct) + '%';
+    document.getElementById('progressText').innerText = `${pct}%`;
+  }
+
+  function chonTien(val) {
+    document.getElementById('inputTien').value = val;
+  }
+
+  function themTien() {
+    const val = parseInt(document.getElementById('inputTien').value);
+    if (isNaN(val) || val <= 1000) return alert('Vui lòng nhập số tiền hợp lệ!');
+    if (soTienHienCo + val > soTienMucTieu) return alert('Tiền vượt mục tiêu!');
+    soTienHienCo += val;
+    localStorage.setItem('soTienHienCo', soTienHienCo);
+    capNhatHienThi();
+    document.getElementById('inputTien').value = '';
+  }
+
+  function truTien() {
+    const val = parseInt(document.getElementById('inputChiTieu').value);
+    if (isNaN(val) || val <= 1000) return alert('Vui lòng nhập số hợp lệ!');
+    if (val > soTienHienCo) return alert('Tiền chi vượt số hiện có!');
+    soTienHienCo -= val;
+    localStorage.setItem('soTienHienCo', soTienHienCo);
+    capNhatHienThi();
+    document.getElementById('inputChiTieu').value = '';
+  }
+
+  function initMonthYearSelect() {
+    const now = new Date();
+    const monthSelect = document.getElementById('monthSelect');
+    const yearSelect = document.getElementById('yearSelect');
+    for (let m = 0; m < 12; m++) {
+      let opt = new Option(`Tháng ${m+1}`, m);
+      monthSelect.appendChild(opt);
+    }
+    for (let y = now.getFullYear()-5; y <= now.getFullYear()+5; y++) {
+      let opt = new Option(y, y);
+      yearSelect.appendChild(opt);
+    }
+    monthSelect.value = now.getMonth();
+    yearSelect.value = now.getFullYear();
+  }
+
+  function taoLich() {
+    const m = +document.getElementById('monthSelect').value;
+    const y = +document.getElementById('yearSelect').value;
+    const c = document.getElementById('calendar');
+    c.innerHTML = '';
+    const days = new Date(y, m+1, 0).getDate();
+    for (let d = 1; d <= days; d++) {
+      const key = `${y}-${m+1}-${d}`;
+      let div = document.createElement('div');
+      div.className = 'day';
+      div.innerText = d;
+      if (chamCongData[key]) {
+        div.classList.add('saved');
+        div.innerHTML += '<span class="tick">✔</span>';
+      }
+      div.onclick = () => {
+        document.querySelectorAll('.day').forEach(el => el.classList.remove('selected'));
+        div.classList.add('selected');
+        ngayChon = key;
+        showPopup(key, d, m+1, y);
+      };
+      c.appendChild(div);
+    }
+  }
+
+  function showPopup(key, d, m, y) {
+    document.getElementById('popup').style.display = 'flex';
+    document.getElementById('popup-date').innerText = `Ngày ${d}/${m}/${y}`;
+    document.getElementById('popup-cong').value = chamCongData[key]?.cong || '1';
+    document.getElementById('popup-note').value = chamCongData[key]?.note || '';
+  }
+
+  function closePopup() {
+    document.getElementById('popup').style.display = 'none';
+  }
+
+  function savePopup() {
+    const cong = document.getElementById('popup-cong').value;
+    const note = document.getElementById('popup-note').value;
+    chamCongData[ngayChon] = { cong, note };
+    localStorage.setItem('chamCongData', JSON.stringify(chamCongData));
+    taoLich();
+    closePopup();
+  }
+
+  function deletePopup() {
+    if (confirm("Bạn có chắc chắn muốn xóa ngày này không?")) {
+      delete chamCongData[ngayChon];
+      localStorage.setItem('chamCongData', JSON.stringify(chamCongData));
+      taoLich();
+      closePopup();
+    }
+  }
+
+  window.onload = () => {
+    const saved = localStorage.getItem('soTienHienCo');
+    if (saved) soTienHienCo = parseInt(saved);
+    capNhatHienThi();
+    initMonthYearSelect();
+    taoLich();
+  }
+</script>
+</body>
+</html>
