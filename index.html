@@ -73,10 +73,7 @@
       border: 1px solid #ccc;
     }
     .input-tiet-kiem {
-      width: 95.5%; /* Kích thước cụ thể của ô nhập mục tiêu tiết kiệm */
-    }
-    .input-tru-tien {
-      width: 95.5%; /* Kích thước cụ thể của ô nhập mục tiêu tiết kiệm */
+      width: 95.5%;
     }
     textarea {
       height: 80px;
@@ -153,6 +150,20 @@
     }
     .btn-red { background: #dc3545; }
     .btn-red:hover { background: #c82333; }
+
+    /* 🔁 Responsive: Điện thoại dọc */
+    @media (max-width: 768px) and (orientation: portrait) {
+      body {
+        flex-direction: column;
+        height: auto;
+        overflow: auto;
+      }
+      .container, .calendar-container {
+        width: 95%;
+        max-width: 100%;
+        margin: 10px auto;
+      }
+    }
   </style>
 </head>
 <body>
